@@ -6,7 +6,11 @@ import {
 } from "@remix-run/react";
 import { bearerToken } from "~/cookies.server";
 import { getBearerToken } from "../api/jpa/auth";
-import { getStatus } from "../api/jpa/data";
+import { getStatus, getTotals } from "../api/jpa/data";
+
+import { defer } from "@remix-run/node"; // or cloudflare/deno
+import { Await } from "@remix-run/react";
+import { Suspense } from "react";
 
 export async function loader({ request }) {
   const cookieHeader = request.headers.get("Cookie");
@@ -14,17 +18,23 @@ export async function loader({ request }) {
 
   let health_check = {};
   if (Object.keys(cookie).length > 0) {
-    // const status_response = await getStatus(cookie);
-    // health_check = await status_response.json();
+    const status_response = await getStatus(cookie);
+    health_check = await status_response.json();
   }
 
   if (
     Object.keys(cookie).length === 0 ||
     health_check.message === "Token expired"
   ) {
+    console.log("getting a new token");
     const token_response = await getBearerToken();
     cookie = await token_response.json();
   }
+
+  // const test = await getTotals(cookie);
+  // const totals = await test.json();
+
+  // console.log(totals);
 
   return json(
     { status: "status check off" },
