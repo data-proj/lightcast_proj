@@ -1,16 +1,18 @@
-import { json } from "@remix-run/node";
+import { json, defer } from "@remix-run/node";
 import {
   isRouteErrorResponse,
   useLoaderData,
   useRouteError,
+  Await,
+  useAsyncValue,
 } from "@remix-run/react";
 import { bearerToken } from "~/cookies.server";
 import { getBearerToken } from "../api/jpa/auth";
 import { getStatus, getTotals } from "../api/jpa/data";
 
-import { defer } from "@remix-run/node"; // or cloudflare/deno
-import { Await } from "@remix-run/react";
+// import { Await } from "@remix-run/react";
 import { Suspense } from "react";
+import PostingsOverview from "../components/PostingsOverview";
 
 export async function loader({ request }) {
   const cookieHeader = request.headers.get("Cookie");
@@ -31,13 +33,12 @@ export async function loader({ request }) {
     cookie = await token_response.json();
   }
 
-  // const test = await getTotals(cookie);
-  // const totals = await test.json();
+  const totalsPromise = getTotals(cookie).then((data) => data.json());
 
-  // console.log(totals);
-
-  return json(
-    { status: "status check off" },
+  return defer(
+    {
+      totalsPromise: totalsPromise,
+    },
     {
       headers: {
         "Set-Cookie": await bearerToken.serialize(cookie),
@@ -53,15 +54,24 @@ export const meta = () => {
 };
 
 export default function Index() {
-  const data = useLoaderData();
-
-  console.log(data);
+  const { totalsPromise } = useLoaderData();
 
   return (
-    <div className="grid grid-cols-3">
-      <div>A</div>
-      <div>B</div>
-      <div>C</div>
+    <div className="grid grid-cols-[350px_auto]">
+      <div>INPUT</div>
+      <div className="col-start-2 mb-8 mr-8 mt-8 bg-white p-20col-start-2 mb-8 mr-8 mt-8 bg-white p-20">
+        <div className="text-5xl tracking-tight">
+          Job Posting Competition: Software Developers
+        </div>
+        <Suspense fallback={<p>Loading totals...</p>}>
+          <Await
+            resolve={totalsPromise}
+            errorElement={<p>Error loading TOTALS!</p>}
+          >
+            <PostingsOverview />
+          </Await>
+        </Suspense>
+      </div>
     </div>
   );
 }

@@ -22,7 +22,7 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full text-gray-800 antialiased">
+      <body className=" h-full bg-[#F7F7F7] text-gray-800 antialiased">
         <Outlet />
         <ScrollRestoration />
         <Scripts />
