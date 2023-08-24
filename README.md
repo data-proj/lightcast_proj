@@ -2,10 +2,10 @@
 
 ## Setup
 
-1. Add your CLIENT_ID and CLIENT_SECRET .env
-
-```sh
-vim .env
+1. Add your JPA API CLIENT_ID and CLIENT_SECRET to a `.env` file like `.env.sample`
+```
+CLIENT_ID = "JPA_API_ID"
+CLIENT_SECRET = "JPA_API_SECRET"
 ```
 
 2. Build
