@@ -1,17 +1,15 @@
-import { useAsyncValue } from "@remix-run/react";
-
-export default function GradientTable({ columns, rows, gradient_key }) {
+export default function RankingsTable({ columns, rows, rankings_key }) {
   rows.sort((a, b) => {
-    return a > b[gradient_key] ? -1 : 1;
+    return a > b[rankings_key] ? -1 : 1;
   });
 
-  const gradient_percent = rows[0][gradient_key];
+  const max_ranking_category = rows[0][rankings_key];
 
   const final = rows.map((row) => {
     return {
       ...row,
       gradient_percent: (
-        (Number(row[gradient_key]) / Number(gradient_percent)) *
+        (Number(row[rankings_key]) / Number(max_ranking_category)) *
         100
       ).toFixed(2),
     };
