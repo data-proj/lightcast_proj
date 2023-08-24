@@ -8,16 +8,17 @@ import {
 } from "@remix-run/react";
 import { bearerToken } from "~/cookies.server";
 import { getBearerToken } from "../api/jpa/auth";
-import { getStatus, getTotals } from "../api/jpa/data";
+import { getStatus, getTimeseries, getTotals } from "../api/jpa/data";
 
 // import { Await } from "@remix-run/react";
 import { Suspense } from "react";
 import PostingsOverview from "../components/PostingsOverview";
+import moment from "moment";
 
 export async function loader({ request }) {
   const cookieHeader = request.headers.get("Cookie");
   let cookie = (await bearerToken.parse(cookieHeader)) || {};
-
+  console.log(cookie);
   let health_check = {};
   if (Object.keys(cookie).length > 0) {
     const status_response = await getStatus(cookie);
@@ -33,11 +34,33 @@ export async function loader({ request }) {
     cookie = await token_response.json();
   }
 
-  const totalsPromise = getTotals(cookie).then((data) => data.json());
+  const totalsPromise = getTotals(cookie);
+
+  const timeSeriesPromise = getTimeseries(cookie).then((currentYear) => {
+    return getTimeseries(cookie, {
+      start: moment()
+        .subtract(1, "years")
+        .subtract(1, "months")
+        .format("YYYY-MM-DD"),
+      end: moment().subtract(1, "years").format("YYYY-MM-DD"),
+    }).then((previousYear) => {
+      return {
+        currentYear: { ...currentYear, year: moment().format("YYYY") },
+        previousYear: {
+          ...previousYear,
+          year: moment().subtract(1, "years").format("YYYY"),
+        },
+      };
+    });
+  });
+  // const timeSeriesPreviousYearPromise = getTimeseries(cookie, );
 
   return defer(
     {
       totalsPromise: totalsPromise,
+      // timeSeriesCurrentYearPromise,
+      // timeSeriesPreviousYearPromise,
+      timeSeriesPromise,
     },
     {
       headers: {
@@ -54,7 +77,7 @@ export const meta = () => {
 };
 
 export default function Index() {
-  const { totalsPromise } = useLoaderData();
+  const { totalsPromise, timeSeriesPromise } = useLoaderData();
 
   return (
     <div className="grid grid-cols-[350px_auto]">
@@ -71,9 +94,23 @@ export default function Index() {
             <PostingsOverview />
           </Await>
         </Suspense>
+        <Suspense fallback={<p>Loading TIMESERIES **********...</p>}>
+          <Await
+            resolve={timeSeriesPromise}
+            errorElement={<p>Error loading TIMESERIES!</p>}
+          >
+            <TimeSeriesTest />
+          </Await>
+        </Suspense>
       </div>
     </div>
   );
+}
+
+export function TimeSeriesTest() {
+  const test = useAsyncValue();
+
+  return console.log("test", test) || <p>okay</p>;
 }
 
 export function ErrorBoundary() {
