@@ -3,7 +3,6 @@ import {
   isRouteErrorResponse,
   useLoaderData,
   useRouteError,
-  Await,
 } from "@remix-run/react";
 import { bearerToken } from "~/cookies.server";
 import { getBearerToken } from "../api/jpa/auth";
@@ -16,11 +15,11 @@ import {
 } from "../api/jpa/data";
 import moment from "moment";
 
-import { Suspense } from "react";
 import PostingsOverview from "../components/PostingsOverview";
 import PostingsTrend from "../components/PostingsTrend";
 import PostingsTopCities from "../components/PostingsTopCities";
 import PostingsTopCompanies from "../components/PostingsTopCompanies";
+import SuspenseWrapper from "../components/SuspenseWrapper";
 
 export async function loader({ request }) {
   const cookieHeader = request.headers.get("Cookie");
@@ -50,7 +49,10 @@ export async function loader({ request }) {
       end: moment().subtract(1, "years").format("YYYY-MM-DD"),
     }).then((previousYear) => {
       return {
-        currentYear: { ...currentYear, year: moment().format("YYYY") },
+        currentYear: {
+          ...currentYear,
+          year: moment().format("YYYY"),
+        },
         previousYear: {
           ...previousYear,
           year: moment().subtract(1, "years").format("YYYY"),
@@ -94,38 +96,18 @@ export default function Index() {
         <div className="text-5xl tracking-tight">
           Job Posting Competition: Software Developers
         </div>
-        <Suspense fallback={<p>Loading totals...</p>}>
-          <Await
-            resolve={totalsPromise}
-            errorElement={<p>Error loading TOTALS!</p>}
-          >
-            <PostingsOverview />
-          </Await>
-        </Suspense>
-        <Suspense fallback={<p>Loading time series...</p>}>
-          <Await
-            resolve={timeSeriesPromise}
-            errorElement={<p>Error loading TIME SERIES!</p>}
-          >
-            <PostingsTrend />
-          </Await>
-        </Suspense>
-        <Suspense fallback={<p>Loading rankings...</p>}>
-          <Await
-            resolve={companyRankingsPromise}
-            errorElement={<p>Error loading RANKINGS!</p>}
-          >
-            <PostingsTopCompanies />
-          </Await>
-        </Suspense>
-        <Suspense fallback={<p>Loading rankings...</p>}>
-          <Await
-            resolve={cityRankingsPromise}
-            errorElement={<p>Error loading RANKINGS!</p>}
-          >
-            <PostingsTopCities />
-          </Await>
-        </Suspense>
+        <SuspenseWrapper dataPromise={totalsPromise}>
+          <PostingsOverview />
+        </SuspenseWrapper>
+        <SuspenseWrapper dataPromise={timeSeriesPromise}>
+          <PostingsTrend />
+        </SuspenseWrapper>
+        <SuspenseWrapper dataPromise={companyRankingsPromise}>
+          <PostingsTopCompanies />
+        </SuspenseWrapper>
+        <SuspenseWrapper dataPromise={cityRankingsPromise}>
+          <PostingsTopCities />
+        </SuspenseWrapper>
       </div>
     </div>
   );
