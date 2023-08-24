@@ -1,11 +1,9 @@
-import { json, defer } from "@remix-run/node";
+import { defer } from "@remix-run/node";
 import {
   isRouteErrorResponse,
   useLoaderData,
   useRouteError,
   Await,
-  useAsyncError,
-  useAsyncValue,
 } from "@remix-run/react";
 import { bearerToken } from "~/cookies.server";
 import { getBearerToken } from "../api/jpa/auth";
@@ -21,7 +19,8 @@ import moment from "moment";
 import { Suspense } from "react";
 import PostingsOverview from "../components/PostingsOverview";
 import PostingsTrend from "../components/PostingsTrend";
-import GradientTable from "../components/GradientTable";
+import PostingsTopCities from "../components/PostingsTopCities";
+import PostingsTopCompanies from "../components/PostingsTopCompanies";
 
 export async function loader({ request }) {
   const cookieHeader = request.headers.get("Cookie");
@@ -37,13 +36,11 @@ export async function loader({ request }) {
     Object.keys(cookie).length === 0 ||
     health_check.message === "Token expired"
   ) {
-    console.log("getting a new token at", moment().format("LTS"));
     const token_response = await getBearerToken();
     cookie = await token_response.json();
   }
 
   const totalsPromise = getTotals(cookie);
-
   const timeSeriesPromise = getTimeseries(cookie).then(async (currentYear) => {
     return getTimeseries(cookie, {
       start: moment()
@@ -61,13 +58,15 @@ export async function loader({ request }) {
       };
     });
   });
-  const rankingsPromise = getRankings(cookie);
+  const companyRankingsPromise = getRankings(cookie);
+  const cityRankingsPromise = getRankings(cookie, {}, [], "city");
 
   return defer(
     {
       totalsPromise: await totalsPromise,
       timeSeriesPromise,
-      rankingsPromise,
+      companyRankingsPromise,
+      cityRankingsPromise,
     },
     {
       headers: {
@@ -77,14 +76,16 @@ export async function loader({ request }) {
   );
 }
 export const meta = () => {
-  return [
-    { title: "Lightcast Project" },
-    { name: "description", content: "Here we go" },
-  ];
+  return [{ title: "Lightcast Project" }, { name: "JPA Report", content: "" }];
 };
 
 export default function Index() {
-  const { totalsPromise, timeSeriesPromise, rankingsPromise } = useLoaderData();
+  const {
+    totalsPromise,
+    timeSeriesPromise,
+    companyRankingsPromise,
+    cityRankingsPromise,
+  } = useLoaderData();
 
   return (
     <div className="grid grid-cols-[350px_auto]">
@@ -111,21 +112,23 @@ export default function Index() {
         </Suspense>
         <Suspense fallback={<p>Loading rankings...</p>}>
           <Await
-            resolve={rankingsPromise}
+            resolve={companyRankingsPromise}
             errorElement={<p>Error loading RANKINGS!</p>}
           >
-            <RankingsTest />
+            <PostingsTopCompanies />
+          </Await>
+        </Suspense>
+        <Suspense fallback={<p>Loading rankings...</p>}>
+          <Await
+            resolve={cityRankingsPromise}
+            errorElement={<p>Error loading RANKINGS!</p>}
+          >
+            <PostingsTopCities />
           </Await>
         </Suspense>
       </div>
     </div>
   );
-}
-
-function RankingsTest() {
-  const data = useAsyncValue();
-
-  return <p>table go here</p>;
 }
 
 export function ErrorBoundary() {

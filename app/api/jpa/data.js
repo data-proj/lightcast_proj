@@ -4,7 +4,7 @@ import invariant from "tiny-invariant";
 export async function getStatus(token) {
   invariant(
     token.scope === "postings:us",
-    `Invalid token type: ${token.scope}`
+    `Invalid token scope ${token.scope}`
   );
 
   return fetch("https://emsiservices.com/jpa/status", {
@@ -19,7 +19,7 @@ export async function getStatus(token) {
 export async function getTotals(token, when = {}, title_name = []) {
   invariant(
     token.scope === "postings:us",
-    `Invalid token type: ${token.scope}`
+    `Invalid token scope ${token.scope}`
   );
 
   if (Object.keys(when).length === 0) {
@@ -29,8 +29,6 @@ export async function getTotals(token, when = {}, title_name = []) {
   const body = {
     filter: {
       when,
-      //TODO REMOVE
-      state_name: ["Idaho"],
       title_name: ["Software Developers"],
     },
     metrics: [
@@ -52,7 +50,11 @@ export async function getTotals(token, when = {}, title_name = []) {
 }
 
 export async function getTimeseries(token, when = {}, title_name = []) {
-  // default one month
+  invariant(
+    token.scope === "postings:us",
+    `Invalid token scope ${token.scope}`
+  );
+
   if (Object.keys(when).length === 0) {
     when = getDefaultWhen();
   }
@@ -60,11 +62,11 @@ export async function getTimeseries(token, when = {}, title_name = []) {
   const body = {
     filter: {
       when,
-      state_name: ["Idaho"],
       title_name: ["Software Developers"],
     },
     metrics: ["unique_postings"],
   };
+
   return fetch("https://emsiservices.com/jpa/timeseries", {
     method: "POST",
     headers: {
@@ -81,6 +83,11 @@ export async function getRankings(
   title_name = [],
   facet_name = "company_name"
 ) {
+  invariant(
+    token.scope === "postings:us",
+    `Invalid token scope ${token.scope}`
+  );
+
   if (Object.keys(when).length === 0) {
     when = getDefaultWhen();
   }
@@ -88,7 +95,6 @@ export async function getRankings(
   const body = {
     filter: {
       when,
-      state_name: ["Idaho"],
       title_name: ["Software Developers"],
       company_name: {
         exclude: ["Unclassified"],

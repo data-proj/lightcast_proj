@@ -1,5 +1,11 @@
-export default function SectionTitle({ title }) {
+export default function SectionTitle({ title, underline }) {
   return (
-    <div className="pb-2 text-xl font-semibold tracking-tight">{title}</div>
+    <div
+      className={`${
+        underline ? "border-b" : ""
+      } pb-2 text-xl font-semibold tracking-tight`}
+    >
+      {title}
+    </div>
   );
 }
