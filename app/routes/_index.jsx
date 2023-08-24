@@ -61,7 +61,7 @@ export async function loader({ request }) {
     });
   });
   const companyRankingsPromise = getRankings(cookie);
-  const cityRankingsPromise = getRankings(cookie, {}, [], "city");
+  const cityRankingsPromise = getRankings(cookie, {}, [], "city_name");
 
   return defer(
     {
