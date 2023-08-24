@@ -1,9 +1,9 @@
 import { createCookie } from "@remix-run/node";
 
-const cookie_name =
-  process.env.NODE_ENV === "development"
-    ? "bearer-token"
-    : "__Host-bearer-token";
+const cookie_name = "bearer-toke";
+// process.env.NODE_ENV === "development"
+//   ? "bearer-token"
+//   : "__Host-bearer-token";
 
 export const bearerToken = createCookie(cookie_name, {
   httpOnly: true,

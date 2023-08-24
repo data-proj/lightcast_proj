@@ -6,7 +6,7 @@
     "dev": "remix dev",
     "deploy_start": "netlify serve",
     "typecheck": "tsc",
-    "start": "dotenv -e .env.production remix-serve build"
+    "start": "remix-serve build"
   },
   "dependencies": {
     "@netlify/functions": "^1.4.0",
