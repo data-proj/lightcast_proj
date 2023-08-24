@@ -14,11 +14,12 @@ import { getStatus, getTimeseries, getTotals } from "../api/jpa/data";
 import { Suspense } from "react";
 import PostingsOverview from "../components/PostingsOverview";
 import moment from "moment";
+import PostingsTrend from "../components/PostingsTrend";
 
 export async function loader({ request }) {
   const cookieHeader = request.headers.get("Cookie");
   let cookie = (await bearerToken.parse(cookieHeader)) || {};
-  console.log(cookie);
+
   let health_check = {};
   if (Object.keys(cookie).length > 0) {
     const status_response = await getStatus(cookie);
@@ -29,14 +30,13 @@ export async function loader({ request }) {
     Object.keys(cookie).length === 0 ||
     health_check.message === "Token expired"
   ) {
-    console.log("getting a new token");
+    console.log("getting a new token at", moment().format("LTS"));
     const token_response = await getBearerToken();
     cookie = await token_response.json();
   }
 
   const totalsPromise = getTotals(cookie);
-
-  const timeSeriesPromise = getTimeseries(cookie).then((currentYear) => {
+  const timeSeriesPromise = getTimeseries(cookie).then(async (currentYear) => {
     return getTimeseries(cookie, {
       start: moment()
         .subtract(1, "years")
@@ -53,13 +53,10 @@ export async function loader({ request }) {
       };
     });
   });
-  // const timeSeriesPreviousYearPromise = getTimeseries(cookie, );
 
   return defer(
     {
       totalsPromise: totalsPromise,
-      // timeSeriesCurrentYearPromise,
-      // timeSeriesPreviousYearPromise,
       timeSeriesPromise,
     },
     {
@@ -94,23 +91,17 @@ export default function Index() {
             <PostingsOverview />
           </Await>
         </Suspense>
-        <Suspense fallback={<p>Loading TIMESERIES **********...</p>}>
+        <Suspense fallback={<p>Loading time series...</p>}>
           <Await
             resolve={timeSeriesPromise}
-            errorElement={<p>Error loading TIMESERIES!</p>}
+            errorElement={<p>Error loading TIME SERIES!</p>}
           >
-            <TimeSeriesTest />
+            <PostingsTrend />
           </Await>
         </Suspense>
       </div>
     </div>
   );
-}
-
-export function TimeSeriesTest() {
-  const test = useAsyncValue();
-
-  return console.log("test", test) || <p>okay</p>;
 }
 
 export function ErrorBoundary() {
