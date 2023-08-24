@@ -4,17 +4,24 @@ import {
   useLoaderData,
   useRouteError,
   Await,
+  useAsyncError,
   useAsyncValue,
 } from "@remix-run/react";
 import { bearerToken } from "~/cookies.server";
 import { getBearerToken } from "../api/jpa/auth";
-import { getStatus, getTimeseries, getTotals } from "../api/jpa/data";
 
-// import { Await } from "@remix-run/react";
+import {
+  getRankings,
+  getStatus,
+  getTimeseries,
+  getTotals,
+} from "../api/jpa/data";
+import moment from "moment";
+
 import { Suspense } from "react";
 import PostingsOverview from "../components/PostingsOverview";
-import moment from "moment";
 import PostingsTrend from "../components/PostingsTrend";
+import GradientTable from "../components/GradientTable";
 
 export async function loader({ request }) {
   const cookieHeader = request.headers.get("Cookie");
@@ -36,6 +43,7 @@ export async function loader({ request }) {
   }
 
   const totalsPromise = getTotals(cookie);
+
   const timeSeriesPromise = getTimeseries(cookie).then(async (currentYear) => {
     return getTimeseries(cookie, {
       start: moment()
@@ -53,11 +61,13 @@ export async function loader({ request }) {
       };
     });
   });
+  const rankingsPromise = getRankings(cookie);
 
   return defer(
     {
-      totalsPromise: totalsPromise,
+      totalsPromise: await totalsPromise,
       timeSeriesPromise,
+      rankingsPromise,
     },
     {
       headers: {
@@ -74,7 +84,7 @@ export const meta = () => {
 };
 
 export default function Index() {
-  const { totalsPromise, timeSeriesPromise } = useLoaderData();
+  const { totalsPromise, timeSeriesPromise, rankingsPromise } = useLoaderData();
 
   return (
     <div className="grid grid-cols-[350px_auto]">
@@ -99,9 +109,23 @@ export default function Index() {
             <PostingsTrend />
           </Await>
         </Suspense>
+        <Suspense fallback={<p>Loading rankings...</p>}>
+          <Await
+            resolve={rankingsPromise}
+            errorElement={<p>Error loading RANKINGS!</p>}
+          >
+            <RankingsTest />
+          </Await>
+        </Suspense>
       </div>
     </div>
   );
+}
+
+function RankingsTest() {
+  const data = useAsyncValue();
+
+  return <p>table go here</p>;
 }
 
 export function ErrorBoundary() {
