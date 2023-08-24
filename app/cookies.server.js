@@ -1,10 +1,15 @@
 import { createCookie } from "@remix-run/node";
 
-export const bearerToken = createCookie("bearer-token", {
+const cookie_name =
+  process.env.NODE_ENV === "development"
+    ? "bearer-token"
+    : "__Host-bearer-token";
+
+export const bearerToken = createCookie(cookie_name, {
   httpOnly: true,
   path: "/",
-  sameSite: "lax",
-  secrets: ["s3cret1"],
+  sameSite: "strict",
+  secrets: ["ielcqeo", "9qqtf6z"],
   secure: true,
   maxAge: 3600,
 });
