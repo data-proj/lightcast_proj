@@ -5,6 +5,7 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  Tooltip,
   Legend,
 } from "chart.js";
 
@@ -13,7 +14,14 @@ import { useAsyncValue } from "@remix-run/react";
 import moment from "moment";
 import SectionTitle from "./SectionTitle";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Legend
+);
 
 const options = {
   maintainAspectRatio: false,
@@ -35,7 +43,6 @@ const options = {
       grid: {
         lineWidth: 1.9,
       },
-      //hack
       ticks: {
         maxTicksLimit: 12,
       },
@@ -44,7 +51,6 @@ const options = {
       },
     },
     y: {
-      //probably a hack
       grace: "60%",
       grid: {
         display: false,
@@ -53,7 +59,6 @@ const options = {
         color: "black",
       },
       ticks: {
-        // I guess?
         callback: (value) =>
           Intl.NumberFormat("en-US", {
             notation: "compact",

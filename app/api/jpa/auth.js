@@ -7,7 +7,7 @@ export function getBearerToken() {
   });
 
   return fetch("https://auth.emsicloud.com/connect/token", {
-    method: "Post",
+    method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: auth_params,
   });

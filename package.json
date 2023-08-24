@@ -4,7 +4,6 @@
   "scripts": {
     "build": "remix build",
     "dev": "remix dev",
-    "deploy_start": "netlify serve",
     "typecheck": "tsc",
     "start": "remix-serve build"
   },

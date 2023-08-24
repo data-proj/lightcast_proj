@@ -2,10 +2,6 @@
 module.exports = {
   ignoredRouteFiles: ["**/.*"],
   tailwind: true,
-  // server:
-  //   process.env.NETLIFY || process.env.NETLIFY_LOCAL
-  //     ? "./server.ts"
-  //     : undefined,
   serverBuildPath: "build/index.js",
   appDirectory: "app",
   assetsBuildDirectory: "public/build",

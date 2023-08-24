@@ -41,7 +41,9 @@ export default function RankingsTable({ columns, rows, rankings_key }) {
         <tbody>
           {final.map((row, idx) => {
             let styles =
-              idx === 0 ? "m-2 border-t border-gummy" : "border-t border-gummy";
+              idx === 0
+                ? "m-2 border-t border-bbasecolor"
+                : "border-t border-bbasecolor";
 
             if (idx === final.length - 1) {
               styles = styles + " border-b";
