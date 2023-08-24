@@ -1,4 +1,5 @@
 import { useAsyncValue } from "@remix-run/react";
+import SectionTitle from "./SectionTitle";
 
 export default function PostingsOverview() {
   const { data } = useAsyncValue();
@@ -14,20 +15,18 @@ export default function PostingsOverview() {
   return (
     <div className="mt-14">
       {" "}
-      <div className="pb-2 text-xl font-semibold tracking-tight">
-        Job Postings Overview
-      </div>
+      <SectionTitle title={"Job Postings Overview"} />
       <div className="grid grid-cols-3 text-center">
         <div className="border-y py-12">
-          <span className="text-5xl font-light ">{unique_postings}</span>
+          <span className="text-5xl font-light">{unique_postings}</span>
           <span className="mt-1 block font-semibold">Unique Postings</span>
         </div>
         <div className="border p-12">
-          <span className="text-5xl font-light ">{`${posting_intensity}\u00A0\u00A0:\u00A0\u00A01`}</span>
+          <span className="text-5xl font-light">{`${posting_intensity}\u00A0\u00A0:\u00A0\u00A01`}</span>
           <span className="mt-1 block font-semibold">Posting Intensity</span>
         </div>
         <div className="border-y py-12">
-          <span className="text-5xl font-light ">
+          <span className="text-5xl font-light">
             {`${median_posting_duration} days`}
           </span>
           <span className="mt-1 block font-semibold">
