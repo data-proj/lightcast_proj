@@ -8,13 +8,18 @@ CLIENT_ID = "JPA_API_ID"
 CLIENT_SECRET = "JPA_API_SECRET"
 ```
 
-2. Build
+2. Install dependencies
+```sh
+npm install
+```
+
+3. Build
 
 ```sh
 npm run build
 ```
 
-3. Start
+4. Start the server
 
 ```sh
 npm run start
