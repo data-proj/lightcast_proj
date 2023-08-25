@@ -21,16 +21,13 @@ import PostingsTrend from "../components/PostingsTrend";
 import PostingsTopCities from "../components/PostingsTopCities";
 import PostingsTopCompanies from "../components/PostingsTopCompanies";
 import { validateSearch } from "../helpers/validate_search";
+import { useEffect } from "react";
 
 export async function loader({ request }) {
   const url = new URL(request.url);
   const search = url.searchParams.get("name");
 
-  if (!search) {
-    return { errors: { emptySearch: "Please enter a Job Title" } };
-  }
-
-  if (validateSearch(search)) {
+  if (search && validateSearch(search)) {
     return { errors: { invalidSearch: "Invalid Search" } };
   }
 
@@ -51,57 +48,71 @@ export async function loader({ request }) {
     token = await token_response.json();
   }
 
-  const response = search ? await getTaxonomy(token, "title", search) : null;
-  let search_results = response ? await response.json() : null;
+  let job_title = null;
+  let search_results = null;
+  if (search) {
+    const response = search ? await getTaxonomy(token, "title", search) : null;
+    search_results = response ? await response.json() : null;
 
-  if (search_results.data.length === 0) {
-    return { errors: { noData: "No Results" } };
+    if (search_results.data.length === 0) {
+      return { errors: { noData: "No Results" } };
+    }
+
+    const result_names = search_results.data.map((result) => result.name);
+    job_title = result_names.includes(search)
+      ? search
+      : search_results.data.pop().name;
+
+    search_results = {
+      data: search_results.data.filter((result) => result.name != job_title),
+    };
   }
 
-  const result_names = search_results.data.map((result) => result.name);
-  const job_title = result_names.includes(search)
-    ? search
-    : search_results.data.pop().name;
-
-  search_results = {
-    data: search_results.data.filter((result) => result.name != job_title),
-  };
-
-  const totalPostings = await getTotals(token, {}, [job_title]);
-  // year over year time series
-  const timeSeriesPostings = await getTimeseries(token, {}, [job_title]).then(
-    async (currentYear) => {
-      return getTimeseries(
-        token,
-        {
-          start: moment()
-            .subtract(1, "years")
-            .subtract(1, "months")
-            .format("YYYY-MM-DD"),
-          end: moment().subtract(1, "years").format("YYYY-MM-DD"),
-        },
-        [job_title]
-      ).then((previousYear) => {
-        return {
-          data: {
-            currentYear: {
-              ...currentYear,
-              year: moment().format("YYYY"),
-            },
-            previousYear: {
-              ...previousYear,
-              year: moment().subtract(1, "years").format("YYYY"),
-            },
-          },
-        };
-      });
-    }
+  const totalPostings = await getTotals(
+    token,
+    {},
+    job_title ? [job_title] : []
   );
-  const companyRankingsPostings = await getRankings(token, {}, [job_title]);
+  // year over year time series
+  const timeSeriesPostings = await getTimeseries(
+    token,
+    {},
+    job_title ? [job_title] : []
+  ).then(async (currentYear) => {
+    return getTimeseries(
+      token,
+      {
+        start: moment()
+          .subtract(1, "years")
+          .subtract(1, "months")
+          .format("YYYY-MM-DD"),
+        end: moment().subtract(1, "years").format("YYYY-MM-DD"),
+      },
+      job_title ? [job_title] : []
+    ).then((previousYear) => {
+      return {
+        data: {
+          currentYear: {
+            ...currentYear,
+            year: moment().format("YYYY"),
+          },
+          previousYear: {
+            ...previousYear,
+            year: moment().subtract(1, "years").format("YYYY"),
+          },
+        },
+      };
+    });
+  });
+  const companyRankingsPostings = await getRankings(
+    token,
+    {},
+    job_title ? [job_title] : []
+  );
   const cityRankingsPostings = await getRankings(
     token,
     {},
-    [job_title],
+    job_title ? [job_title] : [],
     "city_name"
   );
 
@@ -111,7 +122,7 @@ export async function loader({ request }) {
       timeSeriesPostings,
       companyRankingsPostings,
       cityRankingsPostings,
-      job_title: job_title,
+      job_title,
       search_results,
     },
     {
@@ -128,6 +139,12 @@ export const meta = () => {
 
 export default function Index() {
   const fetcher = useFetcher();
+
+  useEffect(() => {
+    if (fetcher.state === "idle" && fetcher.data == null) {
+      fetcher.load("?index");
+    }
+  }, [fetcher]);
 
   return (
     <div className="grid grid-cols-[350px_1fr] ">
@@ -157,7 +174,10 @@ export default function Index() {
             </button>
           </fetcher.Form>
         </div>
-        {fetcher.state === "idle" && fetcher.data && !fetcher.data?.errors ? (
+        {fetcher.state === "idle" &&
+        fetcher.data &&
+        !fetcher.data?.errors &&
+        fetcher.data.search_results ? (
           <div className="bg-white mx-h-30 p-5 mt-8 rounded-sm ">
             <div className="font-semibold mt-2 text-lg mb-4">
               Similar Job Titles
@@ -181,7 +201,9 @@ export default function Index() {
         {fetcher.state === "idle" && fetcher.data && !fetcher.data?.errors ? (
           <div>
             <div className="text-5xl tracking-tight">
-              {`Job Posting Competition: ${fetcher.data.job_title}`}
+              {fetcher.data.job_title
+                ? `Job Posting Competition: ${fetcher.data.job_title}`
+                : "Job Posting Competition"}
             </div>
             <PostingsOverview data={fetcher.data.totalPostings.data} />
             <PostingsTrend data={fetcher.data.timeSeriesPostings.data} />
