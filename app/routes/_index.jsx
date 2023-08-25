@@ -146,18 +146,15 @@ export default function Index() {
               <p className="text-red-400 text-xs">
                 {fetcher.data.errors?.invalidSearch}
               </p>
-            ) : null}
-            <div className="mt-10 bg-[#00ad8f] rounded text-center py-3">
-              {" "}
-              <button
-                className="text-lg font-bold text-white"
-                type="submit"
-                name="intent"
-                value="update"
-              >
-                Search
-              </button>
-            </div>
+            ) : null}{" "}
+            <button
+              className="text-lg w-full font-bold text-white mt-10  bg-[#00ad8f] rounded text-center py-3"
+              type="submit"
+              name="intent"
+              value="update"
+            >
+              Search
+            </button>
           </fetcher.Form>
         </div>
         {fetcher.state === "idle" && fetcher.data && !fetcher.data?.errors ? (
