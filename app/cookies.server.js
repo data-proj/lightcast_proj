@@ -1,6 +1,6 @@
 import { createCookie } from "@remix-run/node";
 
-const cookie_name = "bearer-toke";
+const cookie_name = "bearer-token";
 // process.env.NODE_ENV === "development"
 //   ? "bearer-token"
 //   : "__Host-bearer-token";

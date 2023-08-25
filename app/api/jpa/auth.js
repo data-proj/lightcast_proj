@@ -1,3 +1,7 @@
+// Using dotenv to expose env variables just for this project
+import * as dotenv from "dotenv";
+dotenv.config();
+
 export function getBearerToken() {
   const auth_params = new URLSearchParams({
     client_id: process.env.CLIENT_ID,
