@@ -106,7 +106,7 @@ export default function TimeSeriesChart({ data }) {
   return (
     <>
       <div className="mt-6 font-normal tracking-tight">
-        This view display the most recent 30 days of job postings activity to
+        This view displays the most recent 30 days of job postings activity to
         show near-term trends.
       </div>
       <div className="mx-2 mt-10">

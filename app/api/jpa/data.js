@@ -3,7 +3,7 @@ import invariant from "tiny-invariant";
 
 export async function getTaxonomy(token, facet_name, search) {
   invariant(facet_name === "title", `Invalid facet name: ${facet_name}`);
-  invariant(/^[a-zA-Z ]*$/.test(search), "Invalid search characters");
+  invariant(/^[a-zA-Z +#/.]*$/.test(search), "Invalid search characters");
 
   const query_string = `?q=${encodeURIComponent(search)}`;
   const url = `https://emsiservices.com/jpa/taxonomies/${facet_name}${query_string}`;

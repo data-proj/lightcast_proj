@@ -1,4 +1,4 @@
-import { defer, json, redirect } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import {
   isRouteErrorResponse,
   useFetcher,
@@ -52,17 +52,24 @@ export async function loader({ request }) {
   }
 
   const response = search ? await getTaxonomy(token, "title", search) : null;
-  const results = response ? await response.json() : null;
+  let search_results = response ? await response.json() : null;
 
-  if (results.data.length === 0) {
+  if (search_results.data.length === 0) {
     return { errors: { noData: "No Results" } };
   }
 
-  const first_result = [results.data.pop().name];
+  const result_names = search_results.data.map((result) => result.name);
+  const job_title = result_names.includes(search)
+    ? search
+    : search_results.data.pop().name;
 
-  const totalPostings = await getTotals(token, {}, first_result);
+  search_results = {
+    data: search_results.data.filter((result) => result.name != job_title),
+  };
+
+  const totalPostings = await getTotals(token, {}, [job_title]);
   // year over year time series
-  const timeSeriesPostings = await getTimeseries(token, {}, first_result).then(
+  const timeSeriesPostings = await getTimeseries(token, {}, [job_title]).then(
     async (currentYear) => {
       return getTimeseries(
         token,
@@ -73,7 +80,7 @@ export async function loader({ request }) {
             .format("YYYY-MM-DD"),
           end: moment().subtract(1, "years").format("YYYY-MM-DD"),
         },
-        first_result
+        [job_title]
       ).then((previousYear) => {
         return {
           data: {
@@ -90,11 +97,11 @@ export async function loader({ request }) {
       });
     }
   );
-  const companyRankingsPostings = await getRankings(token, {}, first_result);
+  const companyRankingsPostings = await getRankings(token, {}, [job_title]);
   const cityRankingsPostings = await getRankings(
     token,
     {},
-    first_result,
+    [job_title],
     "city_name"
   );
 
@@ -104,7 +111,8 @@ export async function loader({ request }) {
       timeSeriesPostings,
       companyRankingsPostings,
       cityRankingsPostings,
-      first_result: first_result[0],
+      job_title: job_title,
+      search_results,
     },
     {
       headers: {
@@ -120,7 +128,7 @@ export const meta = () => {
 
 export default function Index() {
   const fetcher = useFetcher();
-  console.log(fetcher);
+
   return (
     <div className="grid grid-cols-[350px_1fr] ">
       <div className="mt-8 col-start-1 ml-8 mr-8">
@@ -152,6 +160,16 @@ export default function Index() {
             </div>
           </fetcher.Form>
         </div>
+        {fetcher.state === "idle" && fetcher.data && !fetcher.data?.errors ? (
+          <div className="bg-white mx-h-30 p-5 mt-8 rounded-sm ">
+            <div className="font-semibold mt-2 text-lg mb-4">
+              Similar Job Titles
+            </div>
+            {fetcher.data.search_results.data.map((result) => (
+              <div key={result.id}>{result.name}</div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="col-start-2 mb-8 mr-8 mt-8 bg-white p-20 rounded-sm">
@@ -160,13 +178,13 @@ export default function Index() {
             <div className="text-5xl tracking-tight">
               Job Posting Competition
             </div>
-            <div className="py-8 w-full text-center text-xl"> loading</div>
+            <div className="py-8 w-full text-center text-xl">loading</div>
           </div>
         ) : null}
         {fetcher.state === "idle" && fetcher.data && !fetcher.data?.errors ? (
           <div>
             <div className="text-5xl tracking-tight">
-              {`Job Posting Competition: ${fetcher.data.first_result}`}
+              {`Job Posting Competition: ${fetcher.data.job_title}`}
             </div>
             <PostingsOverview data={fetcher.data.totalPostings.data} />
             <PostingsTrend data={fetcher.data.timeSeriesPostings.data} />

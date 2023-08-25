@@ -1,6 +1,5 @@
 import SectionTitle from "./SectionTitle";
 import PostingRankingsTableLayout from "./PostingRankingsTableLayout";
-import SuspenseWrapper from "./SuspenseWrapper";
 
 export default function PostingsTopCompanies({ data }) {
   return (
