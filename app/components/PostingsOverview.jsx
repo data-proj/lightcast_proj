@@ -1,9 +1,6 @@
-import { useAsyncValue } from "@remix-run/react";
 import SectionTitle from "./SectionTitle";
 
-export default function PostingsOverview() {
-  const { data } = useAsyncValue();
-
+export default function PostingsOverview({ data }) {
   const total_postings = Intl.NumberFormat("en-US", {
     notation: "compact",
     maximumFractionDigits: 1,
@@ -37,7 +34,8 @@ export default function PostingsOverview() {
       <div className="mt-8 text-gray-500">
         There were{" "}
         <span className="font-semibold text-gray-800">{total_postings}</span>{" "}
-        total job postings for your selection, of which{" "}
+        total job postings in the U.S. for your selection over the past{" "}
+        <span className="font-semibold text-gray-800">12 months</span>, of which{" "}
         <span className="font-semibold text-gray-800">{unique_postings}</span>{" "}
         were unique. These numbers give us a Posting Intensity of{" "}
         <span className="font-semibold text-gray-800">

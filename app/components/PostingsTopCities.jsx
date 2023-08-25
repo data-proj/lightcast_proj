@@ -1,11 +1,16 @@
 import SectionTitle from "./SectionTitle";
 import PostingRankingsTableLayout from "./PostingRankingsTableLayout";
+import SuspenseWrapper from "./SuspenseWrapper";
 
-export default function PostingsTopCities() {
+export default function PostingsTopCities({ data }) {
   return (
     <div className="mt-14">
-      <SectionTitle title="Top Companies Posting" underline={true} />
-      <PostingRankingsTableLayout type="Company"></PostingRankingsTableLayout>
+      <SectionTitle title="Top Cities Posting" underline={true} />
+
+      <PostingRankingsTableLayout
+        data={data}
+        type="City"
+      ></PostingRankingsTableLayout>
     </div>
   );
 }

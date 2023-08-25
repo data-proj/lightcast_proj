@@ -1,4 +1,8 @@
 export default function RankingsTable({ columns, rows, rankings_key }) {
+  if (rows.length === 0) {
+    return <div>No data</div>;
+  }
+
   rows.sort((a, b) => {
     return a > b[rankings_key] ? -1 : 1;
   });

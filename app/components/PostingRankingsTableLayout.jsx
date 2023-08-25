@@ -1,8 +1,6 @@
-import { useAsyncValue } from "@remix-run/react";
 import RankingsTable from "./RankingsTable";
 
-export default function PostingRankingsTableLayout({ type }) {
-  const { data } = useAsyncValue();
+export default function PostingRankingsTableLayout({ type, data }) {
   const columns = [
     {
       key: "col_1",
@@ -28,6 +26,8 @@ export default function PostingRankingsTableLayout({ type }) {
 
   const rows = data.ranking.buckets.map((row) => ({
     ...row,
+    name: row.name.trim(),
+    median_posting_duration: row.median_posting_duration ?? "-",
     key: row.name + "_" + row.median_posting_duration,
     posting_intensity: Math.round(row.posting_intensity) + " : 1",
     total_unique:

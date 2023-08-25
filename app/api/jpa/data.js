@@ -1,6 +1,22 @@
 import moment from "moment";
 import invariant from "tiny-invariant";
 
+export async function getTaxonomy(token, facet_name, search) {
+  invariant(facet_name === "title", `Invalid facet name: ${facet_name}`);
+  invariant(/^[a-zA-Z ]*$/.test(search), "Invalid search characters");
+
+  const query_string = `?q=${encodeURIComponent(search)}`;
+  const url = `https://emsiservices.com/jpa/taxonomies/${facet_name}${query_string}`;
+
+  return fetch(url, {
+    method: "GET",
+    headers: {
+      "content-type": "application/json",
+      Authorization: format_token_auth(token),
+    },
+  });
+}
+
 export async function getStatus(token) {
   invariant(
     token.scope === "postings:us",
@@ -23,13 +39,15 @@ export async function getTotals(token, when = {}, title_name = []) {
   );
 
   if (Object.keys(when).length === 0) {
-    when = getDefaultWhen();
+    when = {
+      start: moment().subtract(1, "year").format("YYYY-MM"),
+      end: moment().format("YYYY-MM"),
+    };
   }
 
   const body = {
     filter: {
       when,
-      title_name: ["Software Developers"],
     },
     metrics: [
       "median_posting_duration",
@@ -38,6 +56,10 @@ export async function getTotals(token, when = {}, title_name = []) {
       "unique_postings",
     ],
   };
+
+  if (title_name.length > 0) {
+    body.filter.title_name = title_name;
+  }
 
   return fetch("https://emsiservices.com/jpa/totals", {
     method: "POST",
@@ -62,10 +84,13 @@ export async function getTimeseries(token, when = {}, title_name = []) {
   const body = {
     filter: {
       when,
-      title_name: ["Software Developers"],
     },
     metrics: ["unique_postings"],
   };
+
+  if (title_name.length > 0) {
+    body.filter.title_name = title_name;
+  }
 
   return fetch("https://emsiservices.com/jpa/timeseries", {
     method: "POST",
@@ -88,14 +113,21 @@ export async function getRankings(
     `Invalid token scope ${token.scope}`
   );
 
+  invariant(
+    facet_name === "company_name" || facet_name === "city_name",
+    `Invalid facet name: ${facet_name}`
+  );
+
   if (Object.keys(when).length === 0) {
-    when = getDefaultWhen();
+    when = {
+      start: moment().subtract(1, "year").format("YYYY-MM"),
+      end: moment().format("YYYY-MM"),
+    };
   }
 
   const body = {
     filter: {
       when,
-      title_name: ["Software Developers"],
       company_name: {
         exclude: ["Unclassified"],
       },
@@ -111,6 +143,10 @@ export async function getRankings(
     },
   };
 
+  if (title_name.length > 0) {
+    body.filter.title_name = title_name;
+  }
+
   return fetch(`https://emsiservices.com/jpa/rankings/${facet_name}`, {
     method: "POST",
     headers: {
@@ -121,6 +157,7 @@ export async function getRankings(
   }).then((data) => data.json());
 }
 
+// one month
 const getDefaultWhen = () => {
   return {
     start: moment().subtract(1, "months").format("YYYY-MM-DD"),
